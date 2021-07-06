@@ -1,17 +1,14 @@
 import numpy as np
+from mnist import MNIST
 
 
 class Network:
-    def __init__(self, shape, eta):
+    def __init__(self, shape):
         self.shape = shape
         self.L = len(self.shape)
         self.weights = [np.zeros(s)
                         for s in zip(self.shape[:-1], self.shape[1:])]
         self.biases = [np.zeros((j, 1)) for j in self.shape[1:]]
-        self.eta = eta
-
-    def cost_func(self, a, y):
-        return 1/2*(y-a)**2
 
     def der_cost_func(self, a, y):
         return y-a
@@ -52,17 +49,21 @@ class Network:
 
         return nabla_w, nabla_b
 
-    def learn(self, x, y):
+    def learn(self, x, y, eta):
         nabla_w, nabla_b = self.backprop(x, y)
-        self.weights = self.weights - self.eta * nabla_w
-        self.biases = self.biases - self.eta * nabla_b
+        self.weights = self.weights - eta * nabla_w
+        self.biases = self.biases - eta * nabla_b
 
-    def train(self):
-        # load data set
-        xs = []
+    def train(self, data_set, eta):
+        for x, y in data_set:
+            self.learn(x, y, eta)
 
-        for x, y in xs:
-            self.learn(x, y)
+
+def load():
+    mndata = MNIST('./data')
+    mndata.gz = True
+    images, labels = mndata.load_training()
+    return images, labels
 
 
 def main():
