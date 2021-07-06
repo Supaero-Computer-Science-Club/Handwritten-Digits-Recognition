@@ -2,12 +2,13 @@ import numpy as np
 
 
 class Network:
-    def __init__(self, shape):
+    def __init__(self, shape, eta):
         self.shape = shape
         self.L = len(self.shape)
         self.weights = [np.zeros(s)
                         for s in zip(self.shape[:-1], self.shape[1:])]
         self.biases = [np.zeros((j, 1)) for j in self.shape[1:]]
+        self.eta = eta
 
     def cost_func(self, a, y):
         return 1/2*(y-a)**2
@@ -51,15 +52,17 @@ class Network:
 
         return nabla_w, nabla_b
 
-    def learn(self, x):
-        return [[0]], [0]
+    def learn(self, x, y):
+        nabla_w, nabla_b = self.backprop(x, y)
+        self.weights = self.weights - self.eta * nabla_w
+        self.biases = self.biases - self.eta * nabla_b
 
     def train(self):
         # load data set
         xs = []
 
-        for x in xs:
-            self.weights, self.biases = self.learn(x)
+        for x, y in xs:
+            self.learn(x, y)
 
 
 def main():
