@@ -11,6 +11,9 @@ class Network:
                         for j, k in zip(shape[1:], shape[:-1])]
         self.biases = [np.random.randn(j, 1) for j in self.shape[1:]]
 
+    def cost_func(self, data):
+        return sum([np.linalg.norm(y-self.output(x))**2 for x, y in data])/(2*len(data))
+
     def der_cost_func(self, a, y):
         return a-y
 
@@ -74,7 +77,8 @@ class Network:
                 self.learn(
                     data_set[k*len_mini_batch:(k+1)*len_mini_batch], eta)
             if verb:
-                print("Ep", e, ":", self.test(data_set), "/", len(data_set))
+                print("Ep", e+1, ":", self.test(data_set), "/", len(data_set))
+                print("Loss:", self.cost_func(data_set))
 
     def test(self, data_set):
         return sum([int(self.result(x) == np.argmax(y)) for x, y in data_set])
@@ -109,7 +113,16 @@ def der_sigmoid(x):
 def main():
     data, test = load_training_set()
     net = Network([784, 100, 10])
-    net.train(data, 3, 10, 30, True)
+
+    eta = 3
+    mini_batch_size = 10
+    epoch = 30
+
+    print("train with:")
+    print("eta:", eta)
+    print("mini_batch_size:", mini_batch_size)
+    print("epoch:", epoch, "\n")
+    net.train(data, eta, mini_batch_size, epoch, True)
 
     s = net.test(test)
     l = len(test)
