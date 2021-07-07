@@ -106,7 +106,7 @@ def der_sigmoid(x):
 def main():
     data, test = load_training_set()
     net = Network([784, 30, 10])
-    net.train(data, 3, 10, 2)
+    net.train(data, 3, 10, 30)
 
     s = net.test(test)
     l = len(test)
