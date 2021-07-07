@@ -63,6 +63,8 @@ def load():
     mndata = MNIST('./data')
     mndata.gz = True
     images, labels = mndata.load_training()
+    images = np.array(images)
+    images = images[:, :, None]
     return images, labels
 
 
