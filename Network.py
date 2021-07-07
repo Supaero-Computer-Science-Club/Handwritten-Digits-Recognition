@@ -6,18 +6,12 @@ class Network:
     def __init__(self, shape):
         self.shape = shape
         self.L = len(self.shape)
-        self.weights = [np.zeros(s)
-                        for s in zip(self.shape[1], self.shape[:-1])]
-        self.biases = [np.zeros((j, 1)) for j in self.shape[1:]]
+        self.weights = [np.random.rand(j, k)
+                        for j, k in zip(self.shape[1:], self.shape[:-1])]
+        self.biases = [np.random.rand(j, 1) for j in self.shape[1:]]
 
     def der_cost_func(self, a, y):
         return y-a
-
-    def sigmoid_func(self, x):
-        return 1/(1+np.exp(-x))
-
-    def der_sigmoid_func(self, x):
-        return self.sigmoid_func(x)*(self.sigmoid_func(x) - 1)
 
     def backprop(self, x, y):
         # init the grad matrices
@@ -32,28 +26,27 @@ class Network:
         for w, b in zip(self.weights, self.biases):
             z = np.dot(w, a) + b
             zs.append(z)
-            a = self.sigmoid_func(z)
+            a = sigmoid(z)
             acts.append(a)
 
         # end of the Network
-        delta = self.der_cost_func(a, y)*self.der_sigmoid_func(z)
+        delta = self.der_cost_func(a, y)*der_sigmoid(z)
         nabla_w[-1] = np.dot(delta, np.transpose(acts[-2]))
         nabla_b[-1] = delta
 
         # backprop
         for l in range(2, self.L - 1):
             delta = np.dot(np.transpose(
-                self.weights[-l+1]), delta)*self.der_sigmoid_func(zs[-l])
+                self.weights[-l+1]), delta)*der_sigmoid(zs[-l])
             nabla_w[-l] = np.dot(delta, np.transpose(acts[-1-l]))
             nabla_b[-l] = delta
 
         return nabla_w, nabla_b
 
-    def output(self, x):
-        a = x
+    def output(self, a):
         for w, b in zip(self.weights, self.biases):
             z = np.dot(w, a) + b
-            a = self.sigmoid_func(z)
+            a = sigmoid(z)
         return a
 
     def result(self, a):
@@ -61,14 +54,14 @@ class Network:
 
     def learn(self, x, y, eta):
         nabla_w, nabla_b = self.backprop(x, y)
-        self.weights = self.weights - eta * nabla_w
-        self.biases = self.biases - eta * nabla_b
+        self.weights = [w - eta * nw for w, nw in zip(self.weights, nabla_w)]
+        self.biases = [b - eta*nb for b, nb in zip(self.biases, nabla_b)]
 
     def train(self, data_set, labels, eta):
         for x, y in zip(data_set, labels):
             self.learn(x, y, eta)
 
-    def test(self, data_set, labels, eta):
+    def test(self, data_set, labels):
         c = 0
         for x, y in zip(data_set, labels):
             if self.result(x) == y:
@@ -84,14 +77,37 @@ def load_training_set():
 
     images = np.array(images)
     images = images[:, :, None]
+    labels = [np.array([int(y == k) for k in range(10)])[:, None]
+              for y in labels]
     timages = np.array(timages)
     timages = timages[:, :, None]
+    tlabels = [np.array([int(y == k) for k in range(10)])[:, None]
+               for y in tlabels]
 
     return images, labels, timages, tlabels
 
 
+def sigmoid(x):
+    return 1./(1.+np.exp(-x))
+
+
+def der_sigmoid(x):
+    return sigmoid(x)*(1 - sigmoid(x))
+
+
 def main():
-    return 0
+    import Network as nt
+    img, lab, timg, tlab = load_training_set()
+    net = Network([784, 30, 10])
+    net.train(img, lab, 3)
+
+    s = net.test(timg, tlab)
+    l = len(timg)
+    r = s/l
+
+    print("s : ", s)
+    print("l : ", l)
+    print("r : ", r)
 
 
 if __name__ == "__main__":
