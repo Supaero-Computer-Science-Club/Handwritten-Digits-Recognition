@@ -12,7 +12,7 @@ class Network:
         self.biases = [np.random.randn(j, 1) for j in self.shape[1:]]
 
     def der_cost_func(self, a, y):
-        return y-a
+        return a-y
 
     def backprop(self, x, y):
         # init the grad matrices
@@ -61,17 +61,20 @@ class Network:
             nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
 
         m = len(mini_batch)
-        self.weights = [w - eta / m * nw for w,
+        self.weights = [w - (eta / m) * nw for w,
                         nw in zip(self.weights, nabla_w)]
-        self.biases = [b - eta/m*nb for b, nb in zip(self.biases, nabla_b)]
+        self.biases = [b - (eta / m) * nb for b,
+                       nb in zip(self.biases, nabla_b)]
 
-    def train(self, data_set, eta, m, ep):
+    def train(self, data_set, eta, m, ep, verb=False):
         len_mini_batch = len(data_set)//m
-        for _ in range(ep):
+        for e in range(ep):
             random.shuffle(data_set)
             for k in range(m):
                 self.learn(
                     data_set[k*len_mini_batch:(k+1)*len_mini_batch], eta)
+            if verb:
+                print("Ep", e, ":", self.test(data_set), "/", len(data_set))
 
     def test(self, data_set):
         return sum([int(self.result(x) == np.argmax(y)) for x, y in data_set])
@@ -105,8 +108,8 @@ def der_sigmoid(x):
 
 def main():
     data, test = load_training_set()
-    net = Network([784, 30, 10])
-    net.train(data, 3, 10, 30)
+    net = Network([784, 100, 10])
+    net.train(data, 3, 10, 30, True)
 
     s = net.test(test)
     l = len(test)
