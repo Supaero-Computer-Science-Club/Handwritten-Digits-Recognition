@@ -74,15 +74,17 @@ class Network:
             test_set = data_set[-10000:]
             data_set = data_set[:50000]
 
-        len_mini_batch = len(data_set)//m
+        n = len(data_set)
         for e in range(ep):
             random.shuffle(data_set)
-            for k in range(m):
-                self.learn(
-                    data_set[k*len_mini_batch:(k+1)*len_mini_batch], eta)
+            for k in range(n//m):
+                self.learn(data_set[k*m:(k+1)*m], eta)
+
             if verb:
                 print("Ep", e+1, ":", self.test(test_set), "/", len(test_set))
                 print("Loss:", self.cost_func(test_set))
+            else:
+                print("Ep", e+1, "...")
 
     def test(self, data_set):
         return sum([int(self.result(x) == np.argmax(y)) for x, y in data_set])
@@ -116,7 +118,7 @@ def der_sigmoid(x):
 
 def main():
     data, test = load_training_set()
-    net = Network([784, 100, 10])
+    net = Network([784, 30, 10])
 
     eta = 3
     mini_batch_size = 10
