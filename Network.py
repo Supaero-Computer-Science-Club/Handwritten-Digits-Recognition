@@ -90,17 +90,17 @@ class Network:
         return sum([int(self.result(x) == np.argmax(y)) for x, y in data_set])
 
 
-def load_training_set():
+def load_training_set(fnorm):
     mndata = MNIST('./data')
     mndata.gz = True
     images, labels = mndata.load_training()
     timages, tlabels = mndata.load_testing()
 
-    images = np.array(images)
+    images = np.array(images)/fnorm
     images = images[:, :, None]
     labels = [np.array([int(y == k) for k in range(10)])[:, None]
               for y in labels]
-    timages = np.array(timages)
+    timages = np.array(timages)/fnorm
     timages = timages[:, :, None]
     tlabels = [np.array([int(y == k) for k in range(10)])[:, None]
                for y in tlabels]
@@ -117,7 +117,7 @@ def der_sigmoid(x):
 
 
 def main():
-    data, test = load_training_set()
+    data, test = load_training_set(100)
     net = Network([784, 30, 10])
 
     eta = 3
