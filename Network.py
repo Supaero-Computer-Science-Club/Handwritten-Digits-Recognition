@@ -70,6 +70,10 @@ class Network:
                        nb in zip(self.biases, nabla_b)]
 
     def train(self, data_set, eta, m, ep, verb=False):
+        if verb:
+            test_set = data_set[-10000:]
+            data_set = data_set[:50000]
+
         len_mini_batch = len(data_set)//m
         for e in range(ep):
             random.shuffle(data_set)
@@ -77,8 +81,8 @@ class Network:
                 self.learn(
                     data_set[k*len_mini_batch:(k+1)*len_mini_batch], eta)
             if verb:
-                print("Ep", e+1, ":", self.test(data_set), "/", len(data_set))
-                print("Loss:", self.cost_func(data_set))
+                print("Ep", e+1, ":", self.test(test_set), "/", len(test_set))
+                print("Loss:", self.cost_func(test_set))
 
     def test(self, data_set):
         return sum([int(self.result(x) == np.argmax(y)) for x, y in data_set])
