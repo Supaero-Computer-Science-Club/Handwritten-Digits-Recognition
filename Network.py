@@ -21,7 +21,7 @@ class Network:
 
         # feedforward
         a = x
-        acts = [a]
+        acts = [x]
         zs = []
         for w, b in zip(self.weights, self.biases):
             z = np.dot(w, a) + b
@@ -30,15 +30,15 @@ class Network:
             acts.append(a)
 
         # end of the Network
-        delta = self.der_cost_func(a, y)*der_sigmoid(z)
-        nabla_w[-1] = np.dot(delta, np.transpose(acts[-2]))
+        delta = self.der_cost_func(acts[-1], y)*der_sigmoid(zs[-1])
+        nabla_w[-1] = np.dot(delta, acts[-2].transpose())
         nabla_b[-1] = delta
 
         # backprop
-        for l in range(2, self.L - 1):
-            delta = np.dot(np.transpose(
-                self.weights[-l+1]), delta)*der_sigmoid(zs[-l])
-            nabla_w[-l] = np.dot(delta, np.transpose(acts[-1-l]))
+        for l in range(2, self.L):
+            delta = np.dot(
+                self.weights[-l+1].transpose(), delta) * der_sigmoid(zs[-l])
+            nabla_w[-l] = np.dot(delta, acts[-1-l].transpose())
             nabla_b[-l] = delta
 
         return nabla_w, nabla_b
