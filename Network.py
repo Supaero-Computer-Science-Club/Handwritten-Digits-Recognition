@@ -1,5 +1,6 @@
 import numpy as np
 from mnist import MNIST
+import random
 
 
 class Network:
@@ -47,24 +48,33 @@ class Network:
             a = sigmoid(np.dot(w, a) + b)
         return a
 
-    def result(self, a):
-        return np.argmax(a)
+    def result(self, x):
+        return np.argmax(self.output(x))
 
-    def learn(self, x, y, eta):
-        nabla_w, nabla_b = self.backprop(x, y)
-        self.weights = [w - eta * nw for w, nw in zip(self.weights, nabla_w)]
-        self.biases = [b - eta*nb for b, nb in zip(self.biases, nabla_b)]
+    def learn(self, mini_batch, eta):
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
+        nabla_b = [np.zeros(b.shape) for b in self.biases]
 
-    def train(self, data_set, labels, eta):
-        for x, y in zip(data_set, labels):
-            self.learn(x, y, eta)
+        for x, y in mini_batch:
+            delta_nabla_w, delta_nabla_b = self.backprop(x, y)
+            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
 
-    def test(self, data_set, labels):
-        c = 0
-        for x, y in zip(data_set, labels):
-            if self.result(x) == y:
-                c = c + 1
-        return c
+        m = len(mini_batch)
+        self.weights = [w - eta / m * nw for w,
+                        nw in zip(self.weights, nabla_w)]
+        self.biases = [b - eta/m*nb for b, nb in zip(self.biases, nabla_b)]
+
+    def train(self, data_set, eta, m, ep):
+        len_mini_batch = len(data_set)//m
+        for _ in range(ep):
+            random.shuffle(data_set)
+            for k in range(m):
+                self.learn(
+                    data_set[k*len_mini_batch:(k+1)*len_mini_batch], eta)
+
+    def test(self, data_set):
+        return sum([int(self.result(x) == np.argmax(y)) for x, y in data_set])
 
 
 def load_training_set():
@@ -82,7 +92,7 @@ def load_training_set():
     tlabels = [np.array([int(y == k) for k in range(10)])[:, None]
                for y in tlabels]
 
-    return images, labels, timages, tlabels
+    return list(zip(images, labels)), list(zip(timages, tlabels))
 
 
 def sigmoid(x):
@@ -94,13 +104,12 @@ def der_sigmoid(x):
 
 
 def main():
-    import Network as nt
-    img, lab, timg, tlab = load_training_set()
+    data, test = load_training_set()
     net = Network([784, 30, 10])
-    net.train(img, lab, 3)
+    net.train(data, 3, 10, 2)
 
-    s = net.test(timg, tlab)
-    l = len(timg)
+    s = net.test(test)
+    l = len(test)
     r = s/l
 
     print("s : ", s)
