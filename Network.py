@@ -6,18 +6,17 @@ class Network:
     def __init__(self, shape):
         self.shape = shape
         self.L = len(self.shape)
-        self.weights = [np.random.rand(j, k)
-                        for j, k in zip(self.shape[1:], self.shape[:-1])]
-        self.biases = [np.random.rand(j, 1) for j in self.shape[1:]]
+        self.weights = [np.random.randn(j, k)
+                        for j, k in zip(shape[1:], shape[:-1])]
+        self.biases = [np.random.randn(j, 1) for j in self.shape[1:]]
 
     def der_cost_func(self, a, y):
         return y-a
 
     def backprop(self, x, y):
         # init the grad matrices
-        nabla_w = [np.zeros(s)
-                   for s in zip(self.shape[1:], self.shape[:-1])]
-        nabla_b = [np.zeros((j, 1)) for j in self.shape[1:]]
+        nabla_w = [np.zeros(w.shape) for w in self.weights]
+        nabla_b = [np.zeros(b.shape) for b in self.biases]
 
         # feedforward
         a = x
@@ -45,8 +44,7 @@ class Network:
 
     def output(self, a):
         for w, b in zip(self.weights, self.biases):
-            z = np.dot(w, a) + b
-            a = sigmoid(z)
+            a = sigmoid(np.dot(w, a) + b)
         return a
 
     def result(self, a):
@@ -65,7 +63,7 @@ class Network:
         c = 0
         for x, y in zip(data_set, labels):
             if self.result(x) == y:
-                c += 1
+                c = c + 1
         return c
 
 
@@ -88,7 +86,7 @@ def load_training_set():
 
 
 def sigmoid(x):
-    return 1./(1.+np.exp(-x))
+    return 1.0/(1.0+np.exp(-x))
 
 
 def der_sigmoid(x):
