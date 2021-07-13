@@ -130,15 +130,15 @@ def main():
     data, test = load_training_set(100)
     net = Network([784, 30, 10])
 
-    eta = 3
+    eta_cross_entropy = 0.5
     mini_batch_size = 10
     epoch = 30
 
     print("train with:")
-    print("eta:", eta)
+    print("eta:", eta_cross_entropy)
     print("mini_batch_size:", mini_batch_size)
     print("epoch:", epoch, "\n")
-    net.train(data, eta, mini_batch_size, epoch,
+    net.train(data, eta_cross_entropy, mini_batch_size, epoch,
               net.cross_entropy, net.der_cross_entropy, True)
     # net.train(data, eta, mini_batch_size, epoch,
     #          net.cost_func, net.der_cost_func, True)
