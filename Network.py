@@ -11,8 +11,13 @@ class Network:
                         for j, k in zip(shape[1:], shape[:-1])]
         self.biases = [np.random.randn(j, 1) for j in self.shape[1:]]
 
-    def cost_func(self, data):
-        return sum([np.linalg.norm(y-self.output(x))**2 for x, y in data])/(2*len(data))
+    def cost_func(self, data, lbd=0):
+        co = sum([np.linalg.norm(y-self.output(x))**2 for x, y in data])
+        if lbd != 0:
+            reg = lbd * sum([sum(sq) for sq in [x*x for x in self.weights]])
+        else:
+            reg = 0
+        return (co + reg)/(2*len(data))
 
     def der_cost_func(self, a, y):
         return a-y
@@ -64,13 +69,14 @@ class Network:
     def result(self, x):
         return np.argmax(self.output(x))
 
-    def learn(self, mini_batch, eta, der_fun):
+    def learn(self, mini_batch, eta, der_fun, lbd, n=1):
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         nabla_b = [np.zeros(b.shape) for b in self.biases]
 
         for x, y in mini_batch:
             delta_nabla_w, delta_nabla_b = self.backprop(x, y, der_fun)
-            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+            nabla_w = [nw*(1 - eta*lbd/n) + dnw for nw,
+                       dnw in zip(nabla_w, delta_nabla_w)]
             nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
 
         m = len(mini_batch)
@@ -79,7 +85,7 @@ class Network:
         self.biases = [b - (eta / m) * nb for b,
                        nb in zip(self.biases, nabla_b)]
 
-    def train(self, data_set, eta, m, ep, fun, der_fun, verb=False):
+    def train(self, data_set, eta, m, ep, fun, der_fun, lbd=0, verb=False):
         if verb:
             test_set = data_set[-10000:]
             data_set = data_set[:50000]
@@ -88,7 +94,7 @@ class Network:
         for e in range(ep):
             random.shuffle(data_set)
             for k in range(n//m):
-                self.learn(data_set[k*m:(k+1)*m], eta, der_fun)
+                self.learn(data_set[k*m:(k+1)*m], eta, der_fun, lbd, n)
 
             if verb:
                 print("Ep", e+1, ":", self.test(test_set), "/", len(test_set))
@@ -133,13 +139,15 @@ def main():
     eta_cross_entropy = 0.5
     mini_batch_size = 10
     epoch = 30
+    lbd = 5
 
     print("train with:")
     print("eta:", eta_cross_entropy)
     print("mini_batch_size:", mini_batch_size)
-    print("epoch:", epoch, "\n")
+    print("epoch:", epoch)
+    print("lambda:", lbd, "\n")
     net.train(data, eta_cross_entropy, mini_batch_size, epoch,
-              net.cross_entropy, net.der_cross_entropy, True)
+              net.cross_entropy, net.der_cross_entropy, lbd, True)
     # net.train(data, eta, mini_batch_size, epoch,
     #          net.cost_func, net.der_cost_func, True)
 
